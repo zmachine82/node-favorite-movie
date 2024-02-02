@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Movies</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        h1 {
+            color: white;
+            background-color: rgb(74, 107, 214);
+            margin: 0;
+            padding: 16px;
+        }
+
+        .container {
+            padding: 32px;
+        }
+
+        input[type=text] {
+            padding: 10px;
+            border: 2px solid #608ef0;
+            border-radius: 15px;
+            width: 300px;
+        }
+
+        form button {
+            color: white;
+            background-color: rgb(81, 94, 236);
+            border: 0;
+            border-radius: 15px;
+            height: 40px;
+            margin-left: 16px;
+            width: 150px;
+        }
+
+        @media (max-width: 557px) {
+            form button {
+                margin-top: 10px; /* Add margin when the screen size is small */
+            }
+            
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid black;
+        }
+
+        .row p {
+            font-size: larger;
+
+        }
+
+        .row button {
+            color: white;
+            background-color: rgb(236, 81, 81);
+            border: 0;
+            height: 30px;
+            margin-left: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>My favorite movies</h1>
+    <div class="container">
+
+        <form onsubmit="return addMovie()">
+            <input type="text" name="movie" id="movie">
+            <button type="submit">Add new movie</button>
+        </form>
+        <div id="movies">
+
+        </div>
+    </div>
+
+    <script>
+        const input = document.querySelector('input')
+        const movies = document.querySelector('#movies')
+        function addMovie(ev) {
+            fetch('/movie', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: input.value }) }).then(async res => {
+                const savedMovie = await res.json()
+                createMovieElement(savedMovie)
+                input.value = ''
+            })
+            return false
+        }
+
+        async function getAllMovies() {
+            const data = await fetch('/movie')
+            return await data.json()
+        }
+
+        async function deleteMovie(movie) {
+            const data = await fetch('/movie/' + movie._id, { method: 'DELETE' })
+            return data.status
+        }
+
+        function createMovieElement(movie) {
+            const div = document.createElement('div')
+            div.classList.add('row')
+
+            const p = document.createElement('p')
+            p.textContent = movie.name
+            div.appendChild(p)
+
+            const deleteButton = document.createElement('button')
+            deleteButton.textContent = 'Delete'
+            deleteButton.addEventListener('click', () => {
+                deleteMovie(movie).then(code => {
+                    if (code == 200) {
+                        div.remove()
+                    }
+                })
+            })
+            div.appendChild(deleteButton)
+
+            movies.appendChild(div)
+        }
+
+        getAllMovies().then(async data => {
+
+            data.forEach(element => {
+                console.log(element);
+                createMovieElement(element)
+            });
+        })
+    </script>
+</body>
+
+</html>
